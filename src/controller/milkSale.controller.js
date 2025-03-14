@@ -11,7 +11,7 @@ const addSaleMilk = async (req, res, next) => {
 
   try {
 
-    
+
     const milkSale = await MilkSale.create({
       vendorId,
       amount_sold,
@@ -49,7 +49,7 @@ const getMonthlyMilkSaleRecord = async (req, res, next) => {
         },
       },
       {
-        $lookup:{
+        $lookup: {
           from: "milksalevendors",
           localField: "vendorId",
           foreignField: "_id",
@@ -62,7 +62,7 @@ const getMonthlyMilkSaleRecord = async (req, res, next) => {
         }
       },
       {
-        $project:{
+        $project: {
           _id: 1,
           vendor: 1,
           amount_sold: 1,
@@ -82,9 +82,10 @@ const getMonthlyMilkSaleRecord = async (req, res, next) => {
   }
 };
 
+
 const getSaleMilkByVendorId = async (req, res, next) => {
   let { vendorId } = req.params;
-     vendorId=new mongoose.Types.ObjectId(vendorId)
+  vendorId = new mongoose.Types.ObjectId(vendorId)
   try {
     const monthlyMilkRecord = await MilkSale.aggregate([
       {
@@ -92,7 +93,7 @@ const getSaleMilkByVendorId = async (req, res, next) => {
           $and: [{ dairyFarmId: req.user.dairyFarmId }, { vendorId }],
         },
       }
-     
+
     ]);
 
     res.json({
@@ -125,10 +126,10 @@ const deleteMilkSalesRecordbyId = async (req, res, next) => {
 const updateMilkSaleRecordById = async (req, res, next) => {
   const { _id } = req.params;
 
-  const {  amount_sold, date, total_payment } = req.body;
+  const { amount_sold, date, total_payment } = req.body;
   try {
-    const milkSale = await MilkSale.findOne({_id:_id})
-   
+    const milkSale = await MilkSale.findOne({ _id: _id })
+
     if (!milkSale) {
       return next(new ApiError(404, "Milk Sale record not found"));
     }
@@ -146,10 +147,103 @@ const updateMilkSaleRecordById = async (req, res, next) => {
     next(error);
   }
 };
+
+
+const getMilksaleRecordBtwTwoDates = async (req, res, next) => {
+  let { startdate, enddate } = req.body
+
+  startdate = new Date(startdate)
+  enddate = new Date(enddate)
+
+
+  try {
+    const MilkRecord = await MilkSale.aggregate([
+      {
+        $match: {
+          dairyFarmId: req.user.dairyFarmId
+        },
+      },
+      {
+        $lookup: {
+          from: "milksalevendors",
+          localField: "vendorId",
+          foreignField: "_id",
+          as: "vendor"
+        }
+      },
+      {
+        $addFields: {
+          vendor: { $arrayElemAt: ["$vendor", 0] }
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          vendor: 1,
+          amount_sold: 1,
+          date: 1,
+          total_payment: 1
+        }
+      }
+    ]);
+
+    const milkSaleRecordBetweenTwoDates = MilkRecord.filter(milkSR => {
+      const milkSaleDate = new Date(milkSR.date)
+      return milkSaleDate >= startdate && milkSaleDate <= enddate
+    })
+
+    res.json({
+      success: true,
+      message: `Successfully get milk sale Record between ${startdate.toString().slice(0,15)} and ${enddate.toString().slice(0,15)} dates`,
+      milkSaleRecordBetweenTwoDates,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+const getSaleMilkBtDatesAndVendorId = async (req, res, next) => {
+  let { vendorId } = req.params;
+  
+  let { startdate, enddate } = req.body
+
+  startdate = new Date(startdate)
+  enddate = new Date(enddate)
+
+
+  vendorId = new mongoose.Types.ObjectId(vendorId)
+  try {
+    const milkRecord = await MilkSale.aggregate([
+      {
+        $match: {
+          $and: [{ dairyFarmId: req.user.dairyFarmId }, { vendorId }],
+        },
+      }
+
+    ]);
+
+    const milkSaleRecordBetweenTwoDatesByVendorId = milkRecord.filter(milkSR => {
+      const milkSaleDate = new Date(milkSR.date)
+      return milkSaleDate >= startdate && milkSaleDate <= enddate
+    })
+
+    res.json({
+      success: true,
+      message: `Successfully get milk sale Record between ${startdate.toString().slice(0,15)} and ${enddate.toString().slice(0,15)} dates`,
+      milkSaleRecordBetweenTwoDatesByVendorId,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export {
   addSaleMilk,
   getMonthlyMilkSaleRecord,
   getSaleMilkByVendorId,
   deleteMilkSalesRecordbyId,
-  updateMilkSaleRecordById
+  updateMilkSaleRecordById,
+  getMilksaleRecordBtwTwoDates,
+  getSaleMilkBtDatesAndVendorId
 };
