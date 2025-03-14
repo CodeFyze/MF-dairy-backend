@@ -361,7 +361,7 @@ const getMilkProductionRecordofMonthById = async (req, res, next) => {
 };
 
 const getMilkProductioinRecordBtweenDatesBycowId = async (req, res, next) => {
-  let { cowId } = req.query;
+  let { cowId } = req.params;
   cowId = new mongoose.Types.ObjectId(cowId);
   
   let { startdate, enddate } = req.body
