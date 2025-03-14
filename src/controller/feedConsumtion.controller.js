@@ -171,15 +171,23 @@ if (!feedAmount) {
 };
 
 const getFeedConsumtionRecordByMonth = async (req, res, next) => {
-  let { month } = req.params;
+  let { date } = req.params;
 
-  month = month.slice(0, 3);
+  const dateObj = new Date(date);
+
+  const month = dateObj.toLocaleString("en-US", { month: "short" });
+  const year = dateObj.getFullYear();
+
+  const regex = new RegExp(`${month}.*${year}`, "i");
+
+
+
 
   const feedConsumtionRecordMonthly = await FeedConsumtion.aggregate([
     {
       $match: {
         $and: [
-          { date: { $regex: month, $options: "i" } },
+          { date: { $regex: regex } },
           { dairyFarmId: req.user.dairyFarmId },
         ],
       },
