@@ -80,7 +80,7 @@ const addAmountToExistsInventory = async (req, res, next) => {
       return next(new ApiError(404, "Feed inventory record  not found"));
     }
 
-    existsInventory.availableAmount =existsInventory.availableAmount + addAmount;
+    existsInventory.availableAmount = existsInventory.availableAmount + addAmount;
     existsInventory.totalAmount = existsInventory.totalAmount + addAmount;
     await existsInventory.save();
     res
@@ -109,15 +109,15 @@ const subtractAmount = async (req, res, next) => {
       return next(new ApiError(400, "You can Subtract Amount from Inventory"));
     }
 
-    const aAmount=existsInventory.availableAmount
-  
+    const aAmount = existsInventory.availableAmount
+
     if (aAmount - subtractAmount < 0) {
-      
+
       return next(new ApiError(400, "Insufficient Inventory"));
     }
 
-    existsInventory.availableAmount = existsInventory.availableAmount -subtractAmount;
-    existsInventory.totalAmount = existsInventory.totalAmount -subtractAmount;
+    existsInventory.availableAmount = existsInventory.availableAmount - subtractAmount;
+    existsInventory.totalAmount = existsInventory.totalAmount - subtractAmount;
     await existsInventory.save();
     res
       .status(200)
@@ -129,22 +129,57 @@ const subtractAmount = async (req, res, next) => {
     return next(error);
   }
 };
-const getFeedInventoryDetailsByDay=async(req,res,next)=>{
-  const {date}=req.params
-  try { 
-  const feedInventory=await FeedInventory.findOne({date,dairyFarmId:req.user.dairyFarmId})
-   if(!feedInventory){
-    return next(new ApiError(404,"FeedInventory record does not found on this date"))
-   }
+const getFeedInventoryDetailsByDay = async (req, res, next) => {
+  const { date } = req.params
+  try {
+    const feedInventory = await FeedInventory.findOne({ date, dairyFarmId: req.user.dairyFarmId })
 
-   res
-   .status(200)
-   .json({
-     success: true,
-     message: "Successfully get Inventory Record by day",
-   });
+    if (!feedInventory) {
+      return next(new ApiError(404, "FeedInventory record does not found on this date"))
+    }
+
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "Successfully get Inventory Record by day",
+        feedInventory
+      });
   } catch (error) {
-      return next(500,`Error occur while getting inventory record ${error.message}`)
+    return next(500, `Error occur while getting inventory record ${error.message}`)
   }
 }
-export { getFeedInventoryDetails, addFeed,subtractAmount,addAmountToExistsInventory,getFeedInventoryDetailsByDay };
+
+
+
+const getFeedInventoryDetailsByTwoDates = async (req, res, next) => {
+  let { startdate, enddate } = req.body
+
+  startdate = new Date(startdate)
+  enddate = new Date(enddate)
+
+  try {
+    const feedInventory = await FeedInventory.findOne({ dairyFarmId: req.user.dairyFarmId })
+    if (!feedInventory) {
+      return next(new ApiError(404, "FeedInventory record does not found on this date"))
+    }
+
+    const feedInventoryBtwTwoDates = feedInventory.map(feed => {
+      const feedDate = new Date(feed.date)
+      return feedDate >= startdate && feedDate <= enddate
+    })
+
+
+
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: `Successfully get Inventory Record between ${startdate} and ${enddate} dates`,
+        feedInventoryBtwTwoDates
+      });
+  } catch (error) {
+    return next(500, `Error occur while getting inventory record between two dates ${error.message}`)
+  }
+}
+export { getFeedInventoryDetails, addFeed, subtractAmount, addAmountToExistsInventory, getFeedInventoryDetailsByDay, getFeedInventoryDetailsByTwoDates };
