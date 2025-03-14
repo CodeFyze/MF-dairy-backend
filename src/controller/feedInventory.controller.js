@@ -164,7 +164,7 @@ const getFeedInventoryDetailsByTwoDates = async (req, res, next) => {
       return next(new ApiError(404, "FeedInventory record does not found on this date"))
     }
 
-    const feedInventoryBtwTwoDates = feedInventory.map(feed => {
+    const feedInventoryBtwTwoDates = feedInventory.filter(feed => {
       const feedDate = new Date(feed.date)
       return feedDate >= startdate && feedDate <= enddate
     })
@@ -179,7 +179,7 @@ const getFeedInventoryDetailsByTwoDates = async (req, res, next) => {
         feedInventoryBtwTwoDates
       });
   } catch (error) {
-    return next(500, `Error occur while getting inventory record between two dates ${error.message}`)
+    return next(new ApiError(500, `Error occur while getting inventory record between two dates ${error.message}`))
   }
 }
 export { getFeedInventoryDetails, addFeed, subtractAmount, addAmountToExistsInventory, getFeedInventoryDetailsByDay, getFeedInventoryDetailsByTwoDates };
