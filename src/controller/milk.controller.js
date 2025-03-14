@@ -360,6 +360,70 @@ const getMilkProductionRecordofMonthById = async (req, res, next) => {
   });
 };
 
+const getMilkProductioinRecordBtweenDatesBycowId = async (req, res, next) => {
+  let { cowId } = req.query;
+  cowId = new mongoose.Types.ObjectId(cowId);
+  
+  let { startdate, enddate } = req.body
+
+
+  startdate = new Date(startdate)
+  enddate = new Date(enddate)
+
+
+  const milkProductionRecordByCowId = await MilkProduction.aggregate([
+    {
+      $match: {
+        $and: [
+          { dairyFarmId: req.user.dairyFarmId },
+          { cowId},
+        ],
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "createdBy",
+        foreignField: "_id",
+        as: "user",
+      },
+    },
+    {
+      $addFields: {
+        user: { $arrayElemAt: ["$user", 0] },
+      },
+    },
+    {
+      $project: {
+        morning: 1,
+        evening: 1,
+        total: 1,
+        date: 1,
+        createdBy: { name: "$user.name", _id: "$user._id" },
+      },
+    },
+  ]);
+
+
+
+  const milkProductionRecordByCowIdBetweenTwoDates = milkProductionRecordByCowId.filter(milkPR => {
+    const milkProductionDate = new Date(milkPR.date)
+    return milkProductionDate >= startdate && milkProductionDate <= enddate
+  })
+
+  const milkCount=milkProductionRecordByCowIdBetweenTwoDates.reduce((sum,record)=> sum+record.total,0)
+
+
+
+  res.status(200).json({
+    success: true,
+    message: `Successfully get milk production Record between ${startdate.toString().slice(0,15)} and ${enddate.toString().slice(0,15)} dates`,
+    milkProductionRecordByCowIdBetweenTwoDates,milkCount
+  });
+};
+
+
+
 export {
   morningMilkProduction,
   eveningMilkProduction,
@@ -369,4 +433,5 @@ export {
   updateMilkRecordById,
   deleteMilkRecordById,
   getMilkProductionRecordofMonthById,
+  getMilkProductioinRecordBtweenDatesBycowId
 };
