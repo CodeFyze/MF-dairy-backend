@@ -405,12 +405,14 @@ const getMilkProductioinRecordBtweenDatesBycowId = async (req, res, next) => {
   ]);
 
 
+  console.log("cowRecord",milkProductionRecordByCowId)
+
 
   const milkProductionRecordByCowIdBetweenTwoDates = milkProductionRecordByCowId.filter(milkPR => {
     const milkProductionDate = new Date(milkPR.date)
     return milkProductionDate >= startdate && milkProductionDate <= enddate
   })
-
+console.log("milkProductionRecordByCowIdBetweenTwoDates",milkProductionRecordByCowIdBetweenTwoDates)
   const milkCount=milkProductionRecordByCowIdBetweenTwoDates.reduce((sum,record)=> sum+record.total,0)
 
 
