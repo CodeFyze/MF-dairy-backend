@@ -472,7 +472,7 @@ const getFeedConsumtionRecordBtwTwoDates = async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    message: `Successfully get feed consumtion Record between ${startdate.slice(0,15)} and ${enddate.slice(0,15)} dates`,
+    message: `Successfully get feed consumtion Record between ${startdate.toString().slice(0,15)} and ${enddate.toString().slice(0,15)} dates`,
     feedConsumtionRecordBetweenTwoDates,
   });
 };

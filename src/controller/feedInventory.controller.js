@@ -175,7 +175,7 @@ const getFeedInventoryDetailsByTwoDates = async (req, res, next) => {
       .status(200)
       .json({
         success: true,
-        message: `Successfully get Inventory Record between ${startdate.slice(0,15)} and ${enddate.slice(0,15)} dates`,
+        message: `Successfully get Inventory Record between ${startdate.toString().slice(0,15)} and ${enddate.toString().slice(0,15)} dates`,
         feedInventoryBtwTwoDates
       });
   } catch (error) {
