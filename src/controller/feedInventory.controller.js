@@ -159,7 +159,7 @@ const getFeedInventoryDetailsByTwoDates = async (req, res, next) => {
   enddate = new Date(enddate)
 
   try {
-    const feedInventory = await FeedInventory.findOne({ dairyFarmId: req.user.dairyFarmId })
+    const feedInventory = await FeedInventory.find({ dairyFarmId: req.user.dairyFarmId })
     if (!feedInventory) {
       return next(new ApiError(404, "FeedInventory record does not found on this date"))
     }
