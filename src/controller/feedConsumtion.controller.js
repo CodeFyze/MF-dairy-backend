@@ -477,6 +477,81 @@ const getFeedConsumtionRecordBtwTwoDates = async (req, res, next) => {
   });
 };
 
+
+
+const getFeedConsumtionRecordBtwTwoDatesByCowId = async (req, res, next) => {
+  const {cowId}=req.params
+  let { startdate,enddate } = req.body;
+
+   startdate = new Date(startdate);
+   enddate = new Date(enddate);
+
+
+
+
+  const feedConsumtionRecordCowId = await FeedConsumtion.aggregate([
+    {
+      $match: { 
+        dairyFarmId: req.user.dairyFarmId,
+        cowId
+      },
+    },
+    {
+      $lookup: {
+        from: "cows",
+        localField: "cowId",
+        foreignField: "_id",
+        as: "cow",
+      },
+    },
+    {
+      $addFields: {
+        cow: { $arrayElemAt: ["$cow", 0] },
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "createdBy",
+        foreignField: "_id",
+        as: "user",
+      },
+    },
+    {
+      $addFields: {
+        user: { $arrayElemAt: ["$user", 0] },
+      },
+    },
+    {
+      $project: {
+        cowId: 1,
+        morning: 1,
+        evening: 1,
+        total: 1,
+        date: 1,
+        createdBy: { name: "$user.name", _id: "$user._id" },
+        cow: {
+          animalNumber: "$cow.animalNumber",
+          _id: "$cow._id",
+          image: "$cow.image",
+        },
+      },
+    },
+  ]);
+
+  const feedConsumtionRecordBetweenTwoDatesByCowId=await feedConsumtionRecordCowId.filter(feed=>{
+    const feedDate=new Date(feed.date)
+    return feedDate >=startdate && feedDate <=enddate
+  })
+
+  res.status(200).json({
+    success: true,
+    message: `Successfully get feed consumtion Record by cowId between ${startdate.toString().slice(0,15)} and ${enddate.toString().slice(0,15)} dates`,
+    feedConsumtionRecordBetweenTwoDatesByCowId,
+  });
+};
+
+
 export {
   morningFeedConsumtion,
   eveningFeedConsumtion,
@@ -484,5 +559,6 @@ export {
   getTodayFeedConsumtionRecord,
   getTodayFeedConsumtionCount,
   deleteFeedConsumtionRecord,
-  getFeedConsumtionRecordBtwTwoDates
+  getFeedConsumtionRecordBtwTwoDates,
+  getFeedConsumtionRecordBtwTwoDatesByCowId
 };
