@@ -28,6 +28,27 @@ const getFeedInventoryDetails = async (req, res, next) => {
   });
 };
 
+
+
+const getFeedInventoryHistoryByIvid = async (req, res, next) => {
+  const { invId } = req.params;
+
+  const feedInventory = await FeedInventory.findOne({ _id: invId });
+
+  if (!feedInventory) {
+    return next(
+      new ApiError(404, "Feed inventory not found")
+    );
+  }
+
+  res.status(200).json({
+    message: "Feed inventory history get successfully ",
+    success: true,
+    feedInventoryHistory: feedInventory.history,
+  });
+};
+
+
 const addFeed = async (req, res, next) => {
   const { totalAmount, date } = req.body;
 
@@ -55,6 +76,7 @@ const addFeed = async (req, res, next) => {
     availableAmount: totalAmount,
     dairyFarmId: req.user.dairyFarmId,
     createdBy: req.user._id,
+    history: [{ date, changeAmount: totalAmount, updatedAmount: totalAmount, action: "+", modifiedBy: req.user._id }]
   });
 
   if (!feedInventory) {
@@ -71,7 +93,7 @@ const addFeed = async (req, res, next) => {
 
 const addAmountToExistsInventory = async (req, res, next) => {
   const { inventoryId } = req.params;
-  const { addAmount } = req.body;
+  const { addAmount, date } = req.body;
 
   try {
     const existsInventory = await FeedInventory.findOne({ _id: inventoryId });
@@ -82,6 +104,14 @@ const addAmountToExistsInventory = async (req, res, next) => {
 
     existsInventory.availableAmount = existsInventory.availableAmount + addAmount;
     existsInventory.totalAmount = existsInventory.totalAmount + addAmount;
+    existsInventory.history.push(
+      {
+        date,
+        changeAmount: addAmount,
+        updatedAmount: existsInventory.availableAmount + addAmount,
+        action: "+", modifiedBy: req.user._id
+      }
+    )
     await existsInventory.save();
     res
       .status(200)
@@ -96,7 +126,7 @@ const addAmountToExistsInventory = async (req, res, next) => {
 
 const subtractAmount = async (req, res, next) => {
   const { inventoryId } = req.params;
-  const { subtractAmount } = req.body;
+  const { subtractAmount, date } = req.body;
 
   try {
     const existsInventory = await FeedInventory.findOne({ _id: inventoryId });
@@ -118,6 +148,16 @@ const subtractAmount = async (req, res, next) => {
 
     existsInventory.availableAmount = existsInventory.availableAmount - subtractAmount;
     existsInventory.totalAmount = existsInventory.totalAmount - subtractAmount;
+
+    existsInventory.history.push(
+      {
+        date,
+        changeAmount: subtractAmount,
+        updatedAmount: existsInventory.availableAmount - subtractAmount,
+        action: "-", modifiedBy: req.user._id
+      }
+    )
+
     await existsInventory.save();
     res
       .status(200)
@@ -152,19 +192,22 @@ const getFeedInventoryDetailsByDay = async (req, res, next) => {
 
 
 
-const getFeedInventoryDetailsByTwoDates = async (req, res, next) => {
+const getFeedInventoryHistryBetweenTwoDatesByInvId = async (req, res, next) => {
+  const { invId } = req.params
   let { startdate, enddate } = req.body
 
   startdate = new Date(startdate)
   enddate = new Date(enddate)
 
+  console.log(startdate)
   try {
-    const feedInventory = await FeedInventory.find({ dairyFarmId: req.user.dairyFarmId })
+    const feedInventory = await FeedInventory.findOne({ _id: invId })
+
     if (!feedInventory) {
-      return next(new ApiError(404, "FeedInventory record does not found on this date"))
+      return next(new ApiError(404, "FeedInventory record does not found on between these dates"))
     }
 
-    const feedInventoryBtwTwoDates = feedInventory.filter(feed => {
+    const feedInventoryHistoryBtwTwoDates = feedInventory.history.filter(feed => {
       const feedDate = new Date(feed.date)
       return feedDate >= startdate && feedDate <= enddate
     })
@@ -175,11 +218,19 @@ const getFeedInventoryDetailsByTwoDates = async (req, res, next) => {
       .status(200)
       .json({
         success: true,
-        message: `Successfully get Inventory Record between ${startdate.toString().slice(0,15)} and ${enddate.toString().slice(0,15)} dates`,
-        feedInventoryBtwTwoDates
+        message: `Successfully get Inventory history of by inventory id between ${startdate.toString().slice(0, 15)} and ${enddate.toString().slice(0, 15)} dates`,
+        feedInventoryHistoryBtwTwoDates
       });
   } catch (error) {
-    return next(new ApiError(500, `Error occur while getting inventory record between two dates ${error.message}`))
+    return next(new ApiError(500, `Error occur while getting inventory record by inventoryid between two dates ${error.message}`))
   }
 }
-export { getFeedInventoryDetails, addFeed, subtractAmount, addAmountToExistsInventory, getFeedInventoryDetailsByDay, getFeedInventoryDetailsByTwoDates };
+export {
+  getFeedInventoryDetails,
+  addFeed,
+  subtractAmount,
+  addAmountToExistsInventory,
+  getFeedInventoryDetailsByDay,
+  getFeedInventoryHistryBetweenTwoDatesByInvId,
+  getFeedInventoryHistoryByIvid
+};

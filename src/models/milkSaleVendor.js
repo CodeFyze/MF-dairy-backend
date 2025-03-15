@@ -3,8 +3,11 @@ import mongoose from "mongoose";
 const milkSaleVendorSchema = new mongoose.Schema({
      name:{
       type:String,
-      required:true,
-      unique:true
+      required:true
+     },
+     dairyFarmId:{
+          type:mongoose.Schema.Types.ObjectId,
+          required:true
      }
 });
 

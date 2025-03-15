@@ -118,6 +118,13 @@ const eveningMilkProduction = async (req, res, next) => {
 
 const getMilkProductionRecordyByMonth = async (req, res, next) => {
   let { date } = req.params;
+  const dateObj = new Date(date);
+
+  const month = dateObj.toLocaleString("en-US", { month: "short" });
+  const year = dateObj.getFullYear();
+
+  const regex = new RegExp(`${month}.*${year}`, "i");
+
 
   date = date.slice(0, 3);
 
@@ -125,7 +132,7 @@ const getMilkProductionRecordyByMonth = async (req, res, next) => {
     {
       $match: {
         $and: [
-          { date: { $regex: date, $options: "i" } },
+          {date: { $regex: regex } },
           { dairyFarmId: req.user.dairyFarmId },
         ],
       },
@@ -313,13 +320,22 @@ const deleteMilkRecordById = async (req, res, next) => {
 const getMilkProductionRecordofMonthById = async (req, res, next) => {
   let { date, id } = req.query;
   id = new mongoose.Types.ObjectId(id);
+  
+  const dateObj = new Date(date);
+
+  const month = dateObj.toLocaleString("en-US", { month: "short" });
+  const year = dateObj.getFullYear();
+
+  const regex = new RegExp(`${month}.*${year}`, "i");
+
+
   date = date.slice(0, 3);
 
   const milkProductionMonthlyRecord = await MilkProduction.aggregate([
     {
       $match: {
         $and: [
-          { date: { $regex: date, $options: "i" } },
+          {date: { $regex: regex }},
           { dairyFarmId: req.user.dairyFarmId },
           { cowId: id },
         ],

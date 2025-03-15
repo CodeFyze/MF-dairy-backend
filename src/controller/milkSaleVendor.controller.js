@@ -4,11 +4,9 @@ import { ApiError } from "../utlis/ApiError.js";
 const addVendor = async (req, res, next) => {
   const { name } = req.body;
   try {
-    const vendor = await MilkSaleVendor.create({ name });
-    if (!vendor) {
-      return next(new ApiError(400, "Error occur while creating vendor"));
-    }
-
+  
+    const vendor = await MilkSaleVendor.create({ name,dairyFarmId:req.user.dairyFarmId });
+  
     res
       .status(200)
       .json({ success: true, message: "Successfully created vendor" });
@@ -17,11 +15,10 @@ const addVendor = async (req, res, next) => {
   }
 };
 
-
 const getAllVendors= async (req, res, next) => {
 
     try {
-        const vendors=await MilkSaleVendor.find({})
+        const vendors=await MilkSaleVendor.find({dairyFarmId:req.user.dairyFarmId})
 
         res.status(200).json({success:true,message:"successfully get all vendors",vendors})
     } catch (error) {
