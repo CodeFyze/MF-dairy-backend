@@ -126,8 +126,6 @@ const getMilkProductionRecordyByMonth = async (req, res, next) => {
   const regex = new RegExp(`${month}.*${year}`, "i");
 
 
-  date = date.slice(0, 3);
-
   const milkProductionMonthlyRecord = await MilkProduction.aggregate([
     {
       $match: {
@@ -179,11 +177,13 @@ const getMilkProductionRecordyByMonth = async (req, res, next) => {
       },
     },
   ]);
+  const milkCount=milkProductionMonthlyRecord.reduce((sum,record)=>sum+record.total,0)
 
   res.status(200).json({
     success: true,
     message: "succesfully get monthly milk production records",
     milkProductionMonthlyRecord,
+    milkCount
   });
 };
 
@@ -247,10 +247,13 @@ const getTodayMilkProductionRecord = async (req, res, next) => {
     return next(new ApiError(404, "Error while getting milk today record"));
   }
 
+  const todayMilkCount=todayMilkRecord.reduce((sum,record)=>sum+record.total,0)
+
   res.status(200).json({
     success: true,
     message: "succesfully get today milk production records",
     todayMilkRecord,
+    todayMilkCount
   });
 };
 
@@ -378,7 +381,6 @@ const getMilkProductionRecordofMonthById = async (req, res, next) => {
 
 const getMilkProductioinRecordBtweenDatesBycowId = async (req, res, next) => {
   let { cowId } = req.params;
-  cowId = new mongoose.Types.ObjectId(cowId);
   
   let { startdate, enddate } = req.body
 
@@ -392,7 +394,7 @@ const getMilkProductioinRecordBtweenDatesBycowId = async (req, res, next) => {
       $match: {
         $and: [
           { dairyFarmId: req.user.dairyFarmId },
-          { cowId},
+          { cowId:new mongoose.Types.ObjectId(cowId)},
         ],
       },
     },
@@ -421,14 +423,12 @@ const getMilkProductioinRecordBtweenDatesBycowId = async (req, res, next) => {
   ]);
 
 
-  console.log("cowRecord",milkProductionRecordByCowId)
-
 
   const milkProductionRecordByCowIdBetweenTwoDates = milkProductionRecordByCowId.filter(milkPR => {
     const milkProductionDate = new Date(milkPR.date)
     return milkProductionDate >= startdate && milkProductionDate <= enddate
   })
-console.log("milkProductionRecordByCowIdBetweenTwoDates",milkProductionRecordByCowIdBetweenTwoDates)
+
   const milkCount=milkProductionRecordByCowIdBetweenTwoDates.reduce((sum,record)=> sum+record.total,0)
 
 

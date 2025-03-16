@@ -95,15 +95,17 @@ const getTasks = async (req, res, next) => {
 };
 
 const getMonthlyTasks = async (req, res, next) => {
-  let { month } = req.params;
+  let { date } = req.params;
 
-  month = month.slice(0, 3);
+   date = new Date(date);
+  const month = date.toLocaleString("en-US", { month: "short" });
+  const year = date.getFullYear();
 
   const tasks = await Task.aggregate([
     {
       $match: {
         $and: [
-          { createdAt: { $regex: month, $options: "i" } },
+          { createdAt:  { $regex: `${month}.*${year}`, $options: "i" } },
           { dairyFarmId: req.user.dairyFarmId },
         ],
       },

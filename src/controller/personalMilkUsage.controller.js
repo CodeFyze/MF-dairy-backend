@@ -1,5 +1,4 @@
 import { PersonalMilkUsage } from "../models/personal.model.js";
-import { MilkSale } from "../models/milkSale.model.js";
 
 import { ApiError } from "../utlis/ApiError.js";
 

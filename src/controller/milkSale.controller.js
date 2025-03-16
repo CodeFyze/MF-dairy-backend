@@ -192,6 +192,7 @@ const getMilksaleRecordBtwTwoDates = async (req, res, next) => {
       return milkSaleDate >= startdate && milkSaleDate <= enddate
     })
 
+    
     res.json({
       success: true,
       message: `Successfully get milk sale Record between ${startdate.toString().slice(0,15)} and ${enddate.toString().slice(0,15)} dates`,
