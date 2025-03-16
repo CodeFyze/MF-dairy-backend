@@ -45,8 +45,6 @@ const getMedicalRecord = async (req, res, next) => {
 
 
 
-
-
   const monthlyMedicalRecord = await MedicalRecord.aggregate([
     {
       $match: {
@@ -57,11 +55,11 @@ const getMedicalRecord = async (req, res, next) => {
       },
     },
     {
-      $group:{
+      $group: {
         _id: "$cowId",
-         totalVaccine:{$sum:1},
-         medicalRecords: { $push: "$$ROOT" }  
-         
+        totalVaccine: { $sum: 1 },
+        medicalRecords: { $push: "$$ROOT" }
+
       }
     },
     {
@@ -78,9 +76,9 @@ const getMedicalRecord = async (req, res, next) => {
       },
     },
     {
-      $project:{
+      $project: {
         _id: 0,
-        cow: {_id: "$cow._id",animalNumber:"$cow.animalNumber",image: "$cow.image"},
+        cow: { _id: "$cow._id", animalNumber: "$cow.animalNumber", image: "$cow.image" },
         totalVaccine: "$totalVaccine",
         medicalRecords: "$medicalRecords"
       }
@@ -108,7 +106,7 @@ const getMedicalRecordByCowId = async (req, res, next) => {
 
   cowId = new mongoose.Types.ObjectId(cowId);
   try {
-  
+
 
     const cowMedicalRecord = await MedicalRecord.aggregate([
       {
@@ -153,7 +151,7 @@ const getMedicalRecordByCowId = async (req, res, next) => {
       success: true,
       message: "Succesfully get cow medical record",
       cowMedicalRecord,
-      vaccinationCount:cowMedicalRecord.length
+      vaccinationCount: cowMedicalRecord.length
     });
   } catch (error) {
     next(error);
@@ -170,7 +168,7 @@ const deleteMedicalRecord = async (req, res, next) => {
     if (!deleteMedicalRecord) {
       return next(new ApiError(404, "Medical Record not found"));
     }
-    
+
     res.status(200).json({
       message: "Medical Record deleted successfully",
       success: true,
@@ -184,24 +182,24 @@ const updateMedicalRecord = async (req, res, next) => {
   const { _id } = req.params;
 
   const { vaccineType, date, } = req.body;
- 
+
 
   try {
     const medicalRecord = await MedicalRecord.findOne({ _id });
 
-   if(!medicalRecord){
-     return next(new ApiError(404, "Medical Record not found"));
-   }
+    if (!medicalRecord) {
+      return next(new ApiError(404, "Medical Record not found"));
+    }
 
     medicalRecord.vaccineType = vaccineType;
     medicalRecord.date = date;
-  
+
     await medicalRecord.save();
-    
+
     res.status(200).json({
       success: true,
       message: "Medical Record updated successfully",
-    
+
     });
 
   } catch (error) {
@@ -210,6 +208,83 @@ const updateMedicalRecord = async (req, res, next) => {
 };
 
 
+const getMedicalRecordBetweenTwoDatesByCowId = async (req, res, next) => {
+  let { cowId } = req.params;
+
+  let { startdate, enddate } = req.body;
 
 
-export { addMedicalRecord, getMedicalRecord, getMedicalRecordByCowId ,deleteMedicalRecord,updateMedicalRecord};
+  try {
+
+
+    startdate = new Date(startdate);
+    enddate = new Date(enddate);
+
+    const cowMedicalRecord = await MedicalRecord.aggregate([
+      {
+        $match: {
+          $and: [
+            { cowId: new mongoose.Types.ObjectId(cowId) },
+            { dairyFarmId: req.user.dairyFarmId },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "createdBy",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $addFields: {
+          user: { $arrayElemAt: ["$user", 0] },
+        },
+      },
+      {
+        $project: {
+          vaccineType: 1,
+          dairyFarmId: 1,
+          date: 1,
+          createdBy: { name: "$user.name", _id: "$user._id" },
+        },
+      },
+    ]);
+
+    if (!cowMedicalRecord) {
+      return next(
+        new ApiError(400, "Cow record not found")
+      );
+    }
+
+
+    const cowMedicalRecordBetweenTwoDates = await cowMedicalRecord.filter(cowR => {
+      const cowRDate = new Date(cowR.date)
+      return cowRDate >= startdate && cowRDate <= enddate
+    })
+
+
+    res.status(200).json({
+      success: true,
+      message: `Successfully get cow Medical Record by cowId between ${startdate.toString().slice(0, 15)} and ${enddate.toString().slice(0, 15)} dates`,
+      cowMedicalRecordBetweenTwoDates,
+      vaccinationCount: cowMedicalRecordBetweenTwoDates.length
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
+
+
+export {
+  addMedicalRecord,
+  getMedicalRecord,
+  getMedicalRecordByCowId,
+  deleteMedicalRecord,
+  updateMedicalRecord,
+  getMedicalRecordBetweenTwoDatesByCowId
+};

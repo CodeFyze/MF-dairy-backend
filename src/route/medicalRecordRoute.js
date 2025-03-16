@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 import { auth } from "../middleware/auth.js";
-import { addMedicalRecord, deleteMedicalRecord, getMedicalRecord, getMedicalRecordByCowId, updateMedicalRecord } from "../controller/medicalRecord.controller.js";
+import { addMedicalRecord, deleteMedicalRecord, getMedicalRecord, getMedicalRecordBetweenTwoDatesByCowId, getMedicalRecordByCowId, updateMedicalRecord } from "../controller/medicalRecord.controller.js";
 
 
 
@@ -13,5 +13,6 @@ medicalRecordRoute.route("/getMonthlyMedicalRecord/:date").get(auth,getMedicalRe
 medicalRecordRoute.route("/getCowMedicalRecord/:cowId/:date").get(auth,getMedicalRecordByCowId)
 medicalRecordRoute.route("/deleteMedicalRecord/:_id").delete(auth,deleteMedicalRecord)
 medicalRecordRoute.route("/updateMedicalRecord/:_id").patch(auth,updateMedicalRecord)
+medicalRecordRoute.route("/getMedicalRecordBetweenDates/:cowId").get(auth,getMedicalRecordBetweenTwoDatesByCowId)
 
 export {medicalRecordRoute}
