@@ -51,7 +51,7 @@ const registerCow = async (req, res, next) => {
 const getCows = async (req, res, next) => {
   const cows = await Cow.find({ dairyFarmId: req.user.dairyFarmId });
   if (!cows) {
-    return next(new ApiError(404, "Getting cow failed"));
+    return next(new ApiError(404, "You have not added cow yet or provided dairyfarmId does not exists"));
   }
 
   res.status(200).json({

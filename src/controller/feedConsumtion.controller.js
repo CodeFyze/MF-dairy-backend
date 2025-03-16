@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { Cow } from "../models/cow.model.js";
 import { DairyFarm } from "../models/dairyForm.js";
 import { FeedConsumtion } from "../models/feedConsumtion.model.js";
@@ -302,10 +303,25 @@ const getTodayFeedConsumtionRecord = async (req, res, next) => {
     return next(new ApiError(404, "Error while getting Feed Consumtion today record"));
   }
 
+  let morningFeedConsumtionArray = [];
+  let eveningFeedConsumtionArray = [];
+
+  todayFeedConsumtionRecord.forEach(feed => {
+    morningFeedConsumtionArray.push(feed.morning)
+    eveningFeedConsumtionArray.push(feed.evening)
+  })
+
+  const morningFeedConsumtioinCount = morningFeedConsumtionArray.reduce((accumalator, currentValue) => accumalator + currentValue, 0)
+  const eveningFeedConsumtioinCount = eveningFeedConsumtionArray.reduce((accumalator, currentValue) => accumalator + currentValue, 0)
+
+
   res.status(200).json({
     success: true,
     message: "succesfully get today Feed Consumtion records",
     todayFeedConsumtionRecord,
+    todayFeedConsumtionCount:{
+      morningFeedConsumtioinCount, eveningFeedConsumtioinCount, total: morningFeedConsumtioinCount + eveningFeedConsumtioinCount
+    }
   });
 };
 
@@ -408,17 +424,17 @@ const deleteFeedConsumtionRecord = async (req, res, next) => {
 
 
 const getFeedConsumtionRecordBtwTwoDates = async (req, res, next) => {
-  let { startdate,enddate } = req.body;
+  let { startdate, enddate } = req.body;
 
-   startdate = new Date(startdate);
-   enddate = new Date(enddate);
+  startdate = new Date(startdate);
+  enddate = new Date(enddate);
 
 
 
 
   const feedConsumtionRecord = await FeedConsumtion.aggregate([
     {
-      $match: { 
+      $match: {
         dairyFarmId: req.user.dairyFarmId
       },
     },
@@ -465,35 +481,49 @@ const getFeedConsumtionRecordBtwTwoDates = async (req, res, next) => {
     },
   ]);
 
-  const feedConsumtionRecordBetweenTwoDates=await feedConsumtionRecord.filter(feed=>{
-    const feedDate=new Date(feed.date)
-    return feedDate >=startdate && feedDate <=enddate
+  const feedConsumtionRecordBetweenTwoDates = await feedConsumtionRecord.filter(feed => {
+    const feedDate = new Date(feed.date)
+    return feedDate >= startdate && feedDate <= enddate
   })
+
+  let morningFeedConsumtionArray = [];
+  let eveningFeedConsumtionArray = [];
+
+  feedConsumtionRecordBetweenTwoDates.forEach(feed => {
+    morningFeedConsumtionArray.push(feed.morning)
+    eveningFeedConsumtionArray.push(feed.evening)
+  })
+
+  const morningFeedConsumtioinCount = morningFeedConsumtionArray.reduce((accumalator, currentValue) => accumalator + currentValue, 0)
+  const eveningFeedConsumtioinCount = eveningFeedConsumtionArray.reduce((accumalator, currentValue) => accumalator + currentValue, 0)
 
   res.status(200).json({
     success: true,
-    message: `Successfully get feed consumtion Record between ${startdate.toString().slice(0,15)} and ${enddate.toString().slice(0,15)} dates`,
+    message: `Successfully get feed consumtion Record between ${startdate.toString().slice(0, 15)} and ${enddate.toString().slice(0, 15)} dates`,
     feedConsumtionRecordBetweenTwoDates,
+    feedConsumtionCountBetweenDates: {
+      morningFeedConsumtioinCount, eveningFeedConsumtioinCount, total: morningFeedConsumtioinCount + eveningFeedConsumtioinCount
+    }
   });
 };
 
 
 
 const getFeedConsumtionRecordBtwTwoDatesByCowId = async (req, res, next) => {
-  const {cowId}=req.params
-  let { startdate,enddate } = req.body;
+  const { cowId } = req.params
+  let { startdate, enddate } = req.body;
 
-   startdate = new Date(startdate);
-   enddate = new Date(enddate);
+  startdate = new Date(startdate);
+  enddate = new Date(enddate);
 
 
 
 
   const feedConsumtionRecordCowId = await FeedConsumtion.aggregate([
     {
-      $match: { 
+      $match: {
         dairyFarmId: req.user.dairyFarmId,
-        cowId
+        cowId:new mongoose.Types.ObjectId(cowId)
       },
     },
     {
@@ -539,15 +569,31 @@ const getFeedConsumtionRecordBtwTwoDatesByCowId = async (req, res, next) => {
     },
   ]);
 
-  const feedConsumtionRecordBetweenTwoDatesByCowId=await feedConsumtionRecordCowId.filter(feed=>{
-    const feedDate=new Date(feed.date)
-    return feedDate >=startdate && feedDate <=enddate
+
+  const feedConsumtionRecordBetweenTwoDatesByCowId = await feedConsumtionRecordCowId.filter(feed => {
+    const feedDate = new Date(feed.date)
+    return feedDate >= startdate && feedDate <= enddate
   })
+
+
+  let morningFeedConsumtionArray = [];
+  let eveningFeedConsumtionArray = [];
+
+  feedConsumtionRecordBetweenTwoDatesByCowId.forEach(feed => {
+    morningFeedConsumtionArray.push(feed.morning)
+    eveningFeedConsumtionArray.push(feed.evening)
+  })
+
+  const morningFeedConsumtioinCount = morningFeedConsumtionArray.reduce((accumalator, currentValue) => accumalator + currentValue, 0)
+  const eveningFeedConsumtioinCount = eveningFeedConsumtionArray.reduce((accumalator, currentValue) => accumalator + currentValue, 0)
 
   res.status(200).json({
     success: true,
-    message: `Successfully get feed consumtion Record by cowId between ${startdate.toString().slice(0,15)} and ${enddate.toString().slice(0,15)} dates`,
+    message: `Successfully get feed consumtion Record by cowId between ${startdate.toString().slice(0, 15)} and ${enddate.toString().slice(0, 15)} dates`,
     feedConsumtionRecordBetweenTwoDatesByCowId,
+    feedConsumtionCountBetweenDates: {
+      morningFeedConsumtioinCount, eveningFeedConsumtioinCount, total: morningFeedConsumtioinCount + eveningFeedConsumtioinCount
+    }
   });
 };
 
