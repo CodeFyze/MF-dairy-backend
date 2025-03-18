@@ -10,6 +10,8 @@ app.use(express.urlencoded({extended:true,limit:"16kb"}))
 app.use(cookieParser())
 app.use(cors({origin:process.env.ORIGIN,credentials:true}))
 
+
+
 import { userRoute } from "./route/user.route.js";
 app.use("/api/user",userRoute)
 
@@ -43,3 +45,7 @@ app.use("/api/milkSaleVendor",milkSaleVendorRoute)
 
 import { personalUsageMilkRouter } from "./route/personalUsage.route.js";
 app.use("/api/personaMilkUsage",personalUsageMilkRouter)
+
+
+import { dashboardRoute } from "./route/dashboard.route.js";
+app.use("/api/dashboard",dashboardRoute)
