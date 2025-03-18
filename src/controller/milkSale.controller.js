@@ -150,7 +150,7 @@ const updateMilkSaleRecordById = async (req, res, next) => {
 
 
 const getMilksaleRecordBtwTwoDates = async (req, res, next) => {
-  let { startdate, enddate } = req.body
+  let { startdate, enddate } = req.query
 
   startdate = new Date(startdate)
   enddate = new Date(enddate)
@@ -207,7 +207,7 @@ const getMilksaleRecordBtwTwoDates = async (req, res, next) => {
 const getSaleMilkBtDatesAndVendorId = async (req, res, next) => {
   let { vendorId } = req.params;
   
-  let { startdate, enddate } = req.body
+  let { startdate, enddate } = req.query
 
   startdate = new Date(startdate)
   enddate = new Date(enddate)

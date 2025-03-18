@@ -194,7 +194,7 @@ const getFeedInventoryDetailsByDay = async (req, res, next) => {
 
 const getFeedInventoryHistryBetweenTwoDatesByInvId = async (req, res, next) => {
   const { invId } = req.params
-  let { startdate, enddate } = req.body
+  let { startdate, enddate } = req.query
 
   startdate = new Date(startdate)
   enddate = new Date(enddate)

@@ -211,7 +211,7 @@ const updateMedicalRecord = async (req, res, next) => {
 const getMedicalRecordBetweenTwoDatesByCowId = async (req, res, next) => {
   let { cowId } = req.params;
 
-  let { startdate, enddate } = req.body;
+  let { startdate, enddate } = req.query;
 
 
   try {

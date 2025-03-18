@@ -424,7 +424,7 @@ const deleteFeedConsumtionRecord = async (req, res, next) => {
 
 
 const getFeedConsumtionRecordBtwTwoDates = async (req, res, next) => {
-  let { startdate, enddate } = req.body;
+  let { startdate, enddate } = req.query;
 
   startdate = new Date(startdate);
   enddate = new Date(enddate);
@@ -511,7 +511,7 @@ const getFeedConsumtionRecordBtwTwoDates = async (req, res, next) => {
 
 const getFeedConsumtionRecordBtwTwoDatesByCowId = async (req, res, next) => {
   const { cowId } = req.params
-  let { startdate, enddate } = req.body;
+  let { startdate, enddate } = req.query;
 
   startdate = new Date(startdate);
   enddate = new Date(enddate);
