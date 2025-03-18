@@ -382,7 +382,7 @@ const getMilkProductionRecordofMonthById = async (req, res, next) => {
 const getMilkProductioinRecordBtweenDatesBycowId = async (req, res, next) => {
   let { cowId } = req.params;
   
-  let { startdate, enddate } = req.body
+  let { startdate, enddate } = req.query
 
 
   startdate = new Date(startdate)
