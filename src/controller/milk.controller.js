@@ -130,7 +130,7 @@ const getMilkProductionRecordyByMonth = async (req, res, next) => {
     {
       $match: {
         $and: [
-          {date: { $regex: regex } },
+          { date: { $regex: regex } },
           { dairyFarmId: req.user.dairyFarmId },
         ],
       },
@@ -177,7 +177,7 @@ const getMilkProductionRecordyByMonth = async (req, res, next) => {
       },
     },
   ]);
-  const milkCount=milkProductionMonthlyRecord.reduce((sum,record)=>sum+record.total,0)
+  const milkCount = milkProductionMonthlyRecord.reduce((sum, record) => sum + record.total, 0)
 
   res.status(200).json({
     success: true,
@@ -247,7 +247,7 @@ const getTodayMilkProductionRecord = async (req, res, next) => {
     return next(new ApiError(404, "Error while getting milk today record"));
   }
 
-  const todayMilkCount=todayMilkRecord.reduce((sum,record)=>sum+record.total,0)
+  const todayMilkCount = todayMilkRecord.reduce((sum, record) => sum + record.total, 0)
 
   res.status(200).json({
     success: true,
@@ -323,7 +323,7 @@ const deleteMilkRecordById = async (req, res, next) => {
 const getMilkProductionRecordofMonthById = async (req, res, next) => {
   let { date, id } = req.query;
   id = new mongoose.Types.ObjectId(id);
-  
+
   const dateObj = new Date(date);
 
   const month = dateObj.toLocaleString("en-US", { month: "short" });
@@ -338,7 +338,7 @@ const getMilkProductionRecordofMonthById = async (req, res, next) => {
     {
       $match: {
         $and: [
-          {date: { $regex: regex }},
+          { date: { $regex: regex } },
           { dairyFarmId: req.user.dairyFarmId },
           { cowId: id },
         ],
@@ -368,20 +368,20 @@ const getMilkProductionRecordofMonthById = async (req, res, next) => {
     },
   ]);
 
-  const milkCount=milkProductionMonthlyRecord.reduce((sum,record)=> sum+record.total,0)
+  const milkCount = milkProductionMonthlyRecord.reduce((sum, record) => sum + record.total, 0)
 
 
 
   res.status(200).json({
     success: true,
     message: "succesfully get monthly milk production records by cow id",
-    milkProductionMonthlyRecord,milkCount
+    milkProductionMonthlyRecord, milkCount
   });
 };
 
 const getMilkProductioinRecordBtweenDatesBycowId = async (req, res, next) => {
   let { cowId } = req.params;
-  
+
   let { startdate, enddate } = req.query
 
 
@@ -394,7 +394,7 @@ const getMilkProductioinRecordBtweenDatesBycowId = async (req, res, next) => {
       $match: {
         $and: [
           { dairyFarmId: req.user.dairyFarmId },
-          { cowId:new mongoose.Types.ObjectId(cowId)},
+          { cowId: new mongoose.Types.ObjectId(cowId) },
         ],
       },
     },
@@ -429,16 +429,76 @@ const getMilkProductioinRecordBtweenDatesBycowId = async (req, res, next) => {
     return milkProductionDate >= startdate && milkProductionDate <= enddate
   })
 
-  const milkCount=milkProductionRecordByCowIdBetweenTwoDates.reduce((sum,record)=> sum+record.total,0)
+  const milkCount = milkProductionRecordByCowIdBetweenTwoDates.reduce((sum, record) => sum + record.total, 0)
 
 
 
   res.status(200).json({
     success: true,
-    message: `Successfully get milk production Record between ${startdate.toString().slice(0,15)} and ${enddate.toString().slice(0,15)} dates`,
-    milkProductionRecordByCowIdBetweenTwoDates,milkCount
+    message: `Successfully get milk production Record between ${startdate.toString().slice(0, 15)} and ${enddate.toString().slice(0, 15)} dates`,
+    milkProductionRecordByCowIdBetweenTwoDates, milkCount
   });
 };
+
+
+const getMilkProductioinRecordBtweenDates = async (req, res, next) => {
+
+
+  let { startdate, enddate } = req.query
+
+
+  startdate = new Date(startdate)
+  enddate = new Date(enddate)
+
+
+  const milkProductionRecordByCowId = await MilkProduction.aggregate([
+    {
+      $match: {
+        dairyFarmId: req.user.dairyFarmId
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "createdBy",
+        foreignField: "_id",
+        as: "user",
+      },
+    },
+    {
+      $addFields: {
+        user: { $arrayElemAt: ["$user", 0] },
+      },
+    },
+    {
+      $project: {
+        morning: 1,
+        evening: 1,
+        total: 1,
+        date: 1,
+        createdBy: { name: "$user.name", _id: "$user._id" },
+      },
+    },
+  ]);
+
+
+
+  const milkProductionRecordBetweenTwoDates = milkProductionRecordByCowId.filter(milkPR => {
+    const milkProductionDate = new Date(milkPR.date)
+    return milkProductionDate >= startdate && milkProductionDate <= enddate
+  })
+
+  const milkCount = milkProductionRecordBetweenTwoDates.reduce((sum, record) => sum + record.total, 0)
+
+
+
+  res.status(200).json({
+    success: true,
+    message: `Successfully get milk production Record between ${startdate.toString().slice(0, 15)} and ${enddate.toString().slice(0, 15)} dates`,
+    milkProductionRecordBetweenTwoDates, milkCount
+  });
+};
+
 
 
 
@@ -451,5 +511,6 @@ export {
   updateMilkRecordById,
   deleteMilkRecordById,
   getMilkProductionRecordofMonthById,
-  getMilkProductioinRecordBtweenDatesBycowId
+  getMilkProductioinRecordBtweenDatesBycowId,
+  getMilkProductioinRecordBtweenDates
 };

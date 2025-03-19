@@ -2,7 +2,7 @@ import { Router } from "express";
 
 
 import { auth } from "../middleware/auth.js";
-import { deleteMilkRecordById, eveningMilkProduction, getMilkProductioinRecordBtweenDatesBycowId, getMilkProductionRecordofMonthById, getMilkProductionRecordyByMonth, getTodayMilkProductionCount, getTodayMilkProductionRecord, morningMilkProduction, updateMilkRecordById } from "../controller/milk.controller.js";
+import { deleteMilkRecordById, eveningMilkProduction, getMilkProductioinRecordBtweenDates, getMilkProductioinRecordBtweenDatesBycowId, getMilkProductionRecordofMonthById, getMilkProductionRecordyByMonth, getTodayMilkProductionCount, getTodayMilkProductionRecord, morningMilkProduction, updateMilkRecordById } from "../controller/milk.controller.js";
 
 
 const milkProductionRoute=Router()
@@ -16,4 +16,6 @@ milkProductionRoute.route("/updateMilkRecordById/:_id").patch(auth,updateMilkRec
 milkProductionRoute.route("/deleteMilkRecordById/:_id").delete(auth,deleteMilkRecordById)   
 milkProductionRoute.route("/getMilkRecordOfMonthById").get(auth,getMilkProductionRecordofMonthById)
 milkProductionRoute.route("/getMilkRecordByCowBetweenTwoDates/:cowId").get(auth,getMilkProductioinRecordBtweenDatesBycowId)
+milkProductionRoute.route("/getMilkRecordBetweenTwoDates").get(auth,getMilkProductioinRecordBtweenDates)
+
 export {milkProductionRoute}
