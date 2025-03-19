@@ -101,14 +101,16 @@ const addAmountToExistsInventory = async (req, res, next) => {
     if (!existsInventory) {
       return next(new ApiError(404, "Feed inventory record  not found"));
     }
-
+    
+    //updatedAmount in history 
+    const updatedAmount=existsInventory.availableAmount + addAmount
     existsInventory.availableAmount = existsInventory.availableAmount + addAmount;
     existsInventory.totalAmount = existsInventory.totalAmount + addAmount;
     existsInventory.history.push(
       {
         date,
         changeAmount: addAmount,
-        updatedAmount: existsInventory.availableAmount + addAmount,
+        updatedAmount,
         action: "+", modifiedBy: req.user._id
       }
     )
@@ -146,6 +148,8 @@ const subtractAmount = async (req, res, next) => {
       return next(new ApiError(400, "Insufficient Inventory"));
     }
 
+       //updatedAmount in history 
+       const updatedAmount=existsInventory.availableAmount -subtractAmount
     existsInventory.availableAmount = existsInventory.availableAmount - subtractAmount;
     existsInventory.totalAmount = existsInventory.totalAmount - subtractAmount;
 
@@ -153,7 +157,7 @@ const subtractAmount = async (req, res, next) => {
       {
         date,
         changeAmount: subtractAmount,
-        updatedAmount: existsInventory.availableAmount - subtractAmount,
+        updatedAmount,
         action: "-", modifiedBy: req.user._id
       }
     )
